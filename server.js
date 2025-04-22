@@ -9,6 +9,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Ajouter une route pour la racine
+app.get('/', (req, res) => {
+  res.send('Proxy OpenAI fonctionnel. Utilisez la route POST /api/openai pour faire des requêtes à l\'API OpenAI.');
+});
+
 app.post('/api/openai', async (req, res) => {
   try {
     console.log("Requête reçue :", JSON.stringify(req.body));
@@ -37,7 +42,27 @@ app.post('/api/openai', async (req, res) => {
   }
 });
 
+// Ajouter une route ping pour vérifier que le serveur est actif
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Proxy OpenAI démarré sur le port ${PORT}`);
 });
+
+// Fonction pour garder le serveur actif
+function keepWarm() {
+  console.log("Auto-ping pour maintenir le serveur actif");
+  // Ne pas utiliser localhost car on est dans un environnement de production
+  fetch(`https://openai-proxy-gqhc.onrender.com/ping`)
+    .then(() => console.log("Ping réussi"))
+    .catch(err => console.error("Erreur d'auto-ping:", err));
+  
+  // Répéter toutes les 10 minutes
+  setTimeout(keepWarm, 10 * 60 * 1000);
+}
+
+// Démarrer le réchauffeur après un court délai pour que le serveur démarre
+setTimeout(keepWarm, 10000);
