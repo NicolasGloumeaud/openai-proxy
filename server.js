@@ -11,6 +11,8 @@ app.use(express.json());
 
 app.post('/api/openai', async (req, res) => {
   try {
+    console.log("Requête reçue :", JSON.stringify(req.body));
+    
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -21,9 +23,16 @@ app.post('/api/openai', async (req, res) => {
     });
 
     const data = await openaiRes.json();
+    console.log("Réponse OpenAI :", JSON.stringify(data));
+    
+    // Si la réponse contient une erreur, loggez-la
+    if (data.error) {
+      console.error("Erreur OpenAI :", data.error);
+    }
+    
     res.status(openaiRes.status).json(data);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur serveur :", err);
     res.status(500).json({ error: 'Erreur serveur OpenAI proxy.' });
   }
 });
